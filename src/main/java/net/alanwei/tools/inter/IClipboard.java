@@ -4,5 +4,5 @@ import net.alanwei.tools.models.ClipboardResult;
 
 public interface IClipboard {
     ClipboardResult get();
-    boolean set();
+    boolean set(ClipboardResult result);
 }

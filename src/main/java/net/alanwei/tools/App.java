@@ -1,5 +1,10 @@
 package net.alanwei.tools;
 
+import net.alanwei.tools.impl.SystemClipboard;
+import net.alanwei.tools.inter.IClipboard;
+import net.alanwei.tools.models.ClipboardResult;
+import net.alanwei.tools.models.ClipboardType;
+
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -21,32 +26,18 @@ public class App {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                String currentClipboard = getClipboard();
-                if (Objects.equals(previousClipboard, currentClipboard)) {
-                    return;
+                IClipboard clipboard = new SystemClipboard();
+                ClipboardResult result = clipboard.get();
+                if (result.getType().equals(ClipboardType.String)) {
+                    String current = result.getStringData();
+                    if (Objects.equals(current, previousClipboard)) {
+                        return;
+                    }
+                    previousClipboard = current;
+                    System.out.println(current);
                 }
-                previousClipboard = currentClipboard;
-                System.out.println(currentClipboard);
             }
         };
         timer.scheduleAtFixedRate(task, 1000L, 1000L);
-    }
-
-    public static String getClipboard() {
-        try {
-            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            Transferable transferable = clipboard.getContents(null);
-            if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                String value = (String) transferable.getTransferData(DataFlavor.stringFlavor);
-                return value;
-            }
-            if (transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
-                BufferedImage data = (BufferedImage) transferable.getTransferData(DataFlavor.imageFlavor);
-                System.out.println(data.getClass().getTypeName());
-            }
-        } catch (Throwable ex) {
-
-        }
-        return "";
     }
 }
