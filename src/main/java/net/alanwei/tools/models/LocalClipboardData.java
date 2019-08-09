@@ -7,18 +7,18 @@ import java.nio.charset.StandardCharsets;
 
 @Getter
 @Setter
-public class ClipboardResult {
-    private ClipboardResult() {
+public class LocalClipboardData {
+    private LocalClipboardData() {
     }
 
-    public static ClipboardResult invalid() {
-        ClipboardResult result = new ClipboardResult();
+    public static LocalClipboardData invalid() {
+        LocalClipboardData result = new LocalClipboardData();
         result.type = ClipboardType.Invalid;
         return result;
     }
 
-    public static ClipboardResult init(String data) {
-        ClipboardResult result = new ClipboardResult();
+    public static LocalClipboardData init(String data) {
+        LocalClipboardData result = new LocalClipboardData();
         result.setType(ClipboardType.String);
         result.setData(data.getBytes());
         return result;
