@@ -1,0 +1,2 @@
+# clipboard-sync
+clipbaord sync
