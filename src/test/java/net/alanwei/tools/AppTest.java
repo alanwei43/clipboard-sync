@@ -7,10 +7,17 @@ import com.rabbitmq.client.DeliverCallback;
 import net.alanwei.tools.models.ClipboardType;
 import org.junit.Test;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.FlavorEvent;
-import java.awt.datatransfer.FlavorListener;
+import java.awt.datatransfer.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Paths;
 
 /**
  * Unit test for simple App.
@@ -57,15 +64,8 @@ public class AppTest {
 
     @Test
     public void addListener() throws Throwable {
-        new Thread(() -> {
-            Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-            c.addFlavorListener(new FlavorListener() {
-                @Override
-                public void flavorsChanged(FlavorEvent e) {
-                    System.out.println(e);
-                }
-            });
-        }).start();
-        Thread.sleep(1000 * 60 * 24);
+        String b2 = Util.toBase64(new byte[]{10, 100});
+        byte[] b1 = Util.fromBase64(b2);
     }
+
 }

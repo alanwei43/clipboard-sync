@@ -2,6 +2,8 @@ package net.alanwei.tools.models;
 
 import lombok.Builder;
 import lombok.Getter;
+import net.alanwei.tools.Configurations;
+import net.alanwei.tools.Util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -50,12 +52,9 @@ public class LocalClipboardData {
     public NetworkClipboardData toNetworkClipboard() {
         NetworkClipboardData networkClipboardData = new NetworkClipboardData();
         networkClipboardData.setType(this.getType().toString());
-        networkClipboardData.setTimerStamp(this.timeStamp);
-        String base64Data = "";
-        if (this.data != null) {
-            base64Data = Base64.getEncoder().encodeToString(this.data);
-        }
-        networkClipboardData.setBase64Data(base64Data);
+        networkClipboardData.setTimeStamp(this.timeStamp);
+        networkClipboardData.setBase64Data(Util.toBase64(this.data));
+        networkClipboardData.setSourceId(Configurations.LOCAL_HOST_SOURCE_ID);
         return networkClipboardData;
     }
 

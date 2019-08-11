@@ -18,6 +18,7 @@ import java.util.Objects;
 
 @Service
 public class RabbitMqClipboard implements INetworkClipboard {
+    private int tryCount = 1;
 
     @Autowired
     private ILocalClipboard localClipboard;
@@ -43,31 +44,23 @@ public class RabbitMqClipboard implements INetworkClipboard {
     public void publish(NetworkClipboardData clipboard) {
         //TODO 支持正则表达式过滤, 当匹配时, 不传送某些剪贴板内容到网络上.
         try {
+//            this.latestNetworkClipboardData = clipboard;
+            clipboard.setTimeStamp(System.currentTimeMillis() / 1000);
+            clipboard.setSourceId(Configurations.LOCAL_HOST_SOURCE_ID);
+
             this.pubChannel.exchangeDeclare("/clipboard", "topic");
             String routingKey = "sys.default";
             String json = Util.toJson(clipboard);
-            Util.log("publish: " + json);
+            Util.log("publish length: " + json.length());
             this.pubChannel.basicPublish("/clipboard", routingKey, null, json.getBytes("UTF-8"));
         } catch (Throwable ex) {
             Util.log("publish error: " + ex.toString());
-            this.initPubChannel();
+            try {
+                Thread.sleep(1000 * tryCount++);
+            } catch (Throwable ex1) {
+            }
+            this.pubChannel = this.getChannel();
         }
-    }
-
-    private Channel getChannel() {
-        try {
-            String uri = Configurations.getMqUri();
-            ConnectionFactory factory = new ConnectionFactory();
-            factory.setUri(uri);
-            Connection connection = factory.newConnection();
-            return connection.createChannel();
-        } catch (Throwable ex) {
-        }
-        return null;
-    }
-
-    private void initPubChannel() {
-        this.pubChannel = this.getChannel();
     }
 
     private synchronized void watchLocalClipboard() {
@@ -76,11 +69,15 @@ public class RabbitMqClipboard implements INetworkClipboard {
         }
         hasWatched = true;
 
-        this.clipboardWatcher.watch(clipboardData -> {
-            NetworkClipboardData networkClipboardData = clipboardData.toNetworkClipboard();
-            if (!Objects.equals(networkClipboardData.getBase64Data(), this.latestNetworkClipboardData.getBase64Data())) {
-                this.publish(networkClipboardData);
+        this.clipboardWatcher.watch(localClipboard -> {
+            String localHashCode = Util.calculateHash(localClipboard.getData()),
+                    latestNetworkHashCode = Util.calculateHash(this.latestNetworkClipboardData.toLocalClipboard().getData());
+            if (Objects.equals(localHashCode, latestNetworkHashCode)) {
+                Util.log("watch equal: " + localHashCode);
+                return 1;
             }
+            Util.log("watch not equal: " + localHashCode + ", " + latestNetworkHashCode);
+            this.publish(localClipboard.toNetworkClipboard());
             return 1;
         });
     }
@@ -94,27 +91,45 @@ public class RabbitMqClipboard implements INetworkClipboard {
 
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String json = new String(delivery.getBody(), "UTF-8");
-                Util.log("receive: " + json);
+                Util.log("receive length: " + json.length());
                 NetworkClipboardData networkClipboardData = Util.parseJson(json, NetworkClipboardData.class);
 
                 if (Objects.equals(networkClipboardData.getSourceId(), Configurations.LOCAL_HOST_SOURCE_ID)) {
                     Util.log("from self, drop.");
                     return;
                 }
+                this.latestNetworkClipboardData = networkClipboardData;
+
                 LocalClipboardData localClipboardData = networkClipboardData.toLocalClipboard();
                 localClipboard.set(localClipboardData);
-
-                this.latestNetworkClipboardData = networkClipboardData;
             };
             subChannel.basicConsume(queueName, true, deliverCallback, tag -> {
             });
+
+            tryCount = 1;
         } catch (Throwable ex) {
-            Util.log("receive: " + ex.getMessage());
+            Util.log("receive error: " + ex.toString());
             try {
-                Thread.sleep(1000 * 2);
+                Thread.sleep(1000 * tryCount++);
                 this.initSubChannel();
             } catch (Throwable sle) {
             }
         }
     }
+
+
+    private Channel getChannel() {
+        String uri = Configurations.getMqUri();
+        try {
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setUri(uri);
+            Connection connection = factory.newConnection();
+            return connection.createChannel();
+        } catch (Throwable ex) {
+            Util.log("rabbitmq(" + uri + ") connect error: " + ex.toString());
+        }
+        return null;
+    }
+
+
 }

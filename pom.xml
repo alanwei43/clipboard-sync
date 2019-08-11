@@ -4,7 +4,7 @@
     <groupId>net.alanwei.tools</groupId>
     <artifactId>clipboard-sync</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>clipboard-sync</name>
     <url>http://maven.apache.org</url>
 

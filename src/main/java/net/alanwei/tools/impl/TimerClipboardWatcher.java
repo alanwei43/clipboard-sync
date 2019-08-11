@@ -3,10 +3,7 @@ package net.alanwei.tools.impl;
 import net.alanwei.tools.Util;
 import net.alanwei.tools.inter.ILocalClipboard;
 import net.alanwei.tools.inter.IClipboardWatcher;
-import net.alanwei.tools.inter.INetworkClipboard;
 import net.alanwei.tools.models.LocalClipboardData;
-import net.alanwei.tools.models.ClipboardType;
-import net.alanwei.tools.models.NetworkClipboardData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +15,7 @@ import java.util.stream.Collectors;
 public class TimerClipboardWatcher implements IClipboardWatcher {
     @Autowired
     private ILocalClipboard localClipboard;
-    private LocalClipboardData previousClipboardData;
+    private String previousClipboardData;
 
     private Timer timer;
     private List<Function<LocalClipboardData, Integer>> watchers = new ArrayList<>();
@@ -32,13 +29,14 @@ public class TimerClipboardWatcher implements IClipboardWatcher {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                LocalClipboardData result = localClipboard.get();
-                if (previousClipboardData == null || result.areEqual(previousClipboardData)) {
-                    previousClipboardData = result;
+                LocalClipboardData current = localClipboard.get();
+                String currentClipboardData = Util.calculateHash(current.getData());
+                if (previousClipboardData == null || currentClipboardData.equals(previousClipboardData)) {
+                    previousClipboardData = currentClipboardData;
                     return;
                 }
-                previousClipboardData = result;
-                List<Function<LocalClipboardData, Integer>> exitWatchers = watchers.stream().parallel().filter(w -> Objects.equals(w.apply(result), 0)).collect(Collectors.toList());
+                previousClipboardData = currentClipboardData;
+                List<Function<LocalClipboardData, Integer>> exitWatchers = watchers.stream().parallel().filter(w -> Objects.equals(w.apply(current), 0)).collect(Collectors.toList());
 
                 while (exitWatchers.size() > 0) {
                     Function<LocalClipboardData, Integer> first = exitWatchers.get(0);
