@@ -1,5 +1,6 @@
 package net.alanwei.tools.impl;
 
+import net.alanwei.tools.Util;
 import net.alanwei.tools.inter.ILocalClipboard;
 import net.alanwei.tools.models.LocalClipboardData;
 import net.alanwei.tools.models.ClipboardType;
@@ -22,7 +23,8 @@ public class LocalSystemClipboard implements ILocalClipboard {
             Transferable transferable = this.clipboard.getContents(null);
             if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 String value = (String) transferable.getTransferData(DataFlavor.stringFlavor);
-                return LocalClipboardData.init(value);
+                LocalClipboardData clipboardData = new LocalClipboardData(value);
+                return clipboardData;
             }
             return LocalClipboardData.invalid();
         } catch (Throwable ex) {
@@ -32,6 +34,7 @@ public class LocalSystemClipboard implements ILocalClipboard {
 
     @Override
     public boolean set(LocalClipboardData result) {
+        Util.log("update clipboard: " + result.getStringData());
         if (result.getType().equals(ClipboardType.String)) {
             StringSelection data = new StringSelection(new String(result.getData(), StandardCharsets.UTF_8));
             this.clipboard.setContents(data, data);

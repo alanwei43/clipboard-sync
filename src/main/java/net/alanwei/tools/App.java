@@ -1,6 +1,7 @@
 package net.alanwei.tools;
 
 import net.alanwei.tools.inter.IClipboardWatcher;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Objects;
 
@@ -9,11 +10,12 @@ import java.util.Objects;
  */
 
 public class App {
-
     public static void main(String[] args) throws Throwable {
-        IClipboardWatcher watcher = Configurations.getContext().getBean(IClipboardWatcher.class);
+        ApplicationContext cxt = Configurations.getContext();
+//        cxt.getBean()
+        IClipboardWatcher watcher = cxt.getBean(IClipboardWatcher.class);
         watcher.watch(r -> {
-            System.out.println(r.getStringData());
+            Util.log("local: " + r.getStringData());
             if (Objects.equals(r.getStringData(), "exit")) {
                 return 0;
             }

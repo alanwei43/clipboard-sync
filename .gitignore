@@ -24,3 +24,4 @@ hs_err_pid*
 .idea/
 clipboard-sync.iml
 target/
+.DS_Store
