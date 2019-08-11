@@ -3,6 +3,9 @@ package net.alanwei.tools;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class Util {
     private final static Gson gson = new GsonBuilder().create();
 
@@ -18,6 +21,7 @@ public class Util {
     }
 
     public static void log(String txt) {
-        System.out.println(txt);
+        System.out.printf("[%s] %s", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME), txt);
+        System.out.println();
     }
 }

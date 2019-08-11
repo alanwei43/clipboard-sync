@@ -10,9 +10,8 @@ import java.util.Objects;
  */
 
 public class App {
-    public static void main(String[] args) throws Throwable {
+    public static void main(String[] args) {
         ApplicationContext cxt = Configurations.getContext();
-//        cxt.getBean()
         IClipboardWatcher watcher = cxt.getBean(IClipboardWatcher.class);
         watcher.watch(r -> {
             Util.log("local: " + r.getStringData());

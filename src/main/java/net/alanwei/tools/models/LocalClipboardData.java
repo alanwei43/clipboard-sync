@@ -1,43 +1,24 @@
 package net.alanwei.tools.models;
 
+import lombok.Builder;
 import lombok.Getter;
-import net.alanwei.tools.Configurations;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Objects;
 
 @Getter
+@Builder
 public class LocalClipboardData {
     private ClipboardType type;
     private byte[] data;
     private long timeStamp;
-    private String sourceId;
-
-    public LocalClipboardData() {
-        this(Configurations.LOCAL_HOST_SOURCE_ID, System.currentTimeMillis() / 1000);
-    }
-
-    public LocalClipboardData(String sid, long ts) {
-        this.sourceId = sid;
-        this.timeStamp = ts;
-    }
-
-    public LocalClipboardData(String txt) {
-        this();
-        this.type = ClipboardType.String;
-        this.data = txt.getBytes(StandardCharsets.UTF_8);
-    }
-
-    public LocalClipboardData(ClipboardType t, byte[] data) {
-        this();
-        this.type = t;
-        this.data = data;
-    }
 
     public static LocalClipboardData invalid() {
-        LocalClipboardData clipboardData = new LocalClipboardData(ClipboardType.Invalid, null);
-        return clipboardData;
+        return LocalClipboardData.builder().type(ClipboardType.Invalid).build();
+    }
+
+    public static LocalClipboardData string(String txt) {
+        return LocalClipboardData.builder().type(ClipboardType.String).data(txt.getBytes(StandardCharsets.UTF_8)).build();
     }
 
     public String getStringData() {
@@ -69,7 +50,6 @@ public class LocalClipboardData {
     public NetworkClipboardData toNetworkClipboard() {
         NetworkClipboardData networkClipboardData = new NetworkClipboardData();
         networkClipboardData.setType(this.getType().toString());
-        networkClipboardData.setSourceId(this.sourceId);
         networkClipboardData.setTimerStamp(this.timeStamp);
         String base64Data = "";
         if (this.data != null) {
@@ -77,10 +57,6 @@ public class LocalClipboardData {
         }
         networkClipboardData.setBase64Data(base64Data);
         return networkClipboardData;
-    }
-
-    public void setSourceId(String sourceId) {
-        this.sourceId = sourceId;
     }
 
     public void setTimeStamp(long timeStamp) {

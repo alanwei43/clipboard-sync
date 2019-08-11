@@ -23,7 +23,7 @@ public class LocalSystemClipboard implements ILocalClipboard {
             Transferable transferable = this.clipboard.getContents(null);
             if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 String value = (String) transferable.getTransferData(DataFlavor.stringFlavor);
-                LocalClipboardData clipboardData = new LocalClipboardData(value);
+                LocalClipboardData clipboardData = LocalClipboardData.string(value);
                 return clipboardData;
             }
             return LocalClipboardData.invalid();

@@ -26,8 +26,7 @@ public class NetworkClipboardData {
             bytesData = Base64.getDecoder().decode(this.base64Data);
         }
 
-        LocalClipboardData clipboardData = new LocalClipboardData(t, bytesData);
-        clipboardData.setSourceId(this.sourceId);
+        LocalClipboardData clipboardData = LocalClipboardData.builder().type(t).data(bytesData).build();
         clipboardData.setTimeStamp(this.timerStamp);
         return clipboardData;
     }

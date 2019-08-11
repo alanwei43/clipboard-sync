@@ -4,7 +4,13 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
+import net.alanwei.tools.models.ClipboardType;
 import org.junit.Test;
+
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
 
 /**
  * Unit test for simple App.
@@ -47,5 +53,19 @@ public class AppTest {
     @Test
     public void hostName() {
         System.getProperties().stringPropertyNames().forEach(n -> System.out.println("Name: " + n + ", Value: " + System.getProperty(n)));
+    }
+
+    @Test
+    public void addListener() throws Throwable {
+        new Thread(() -> {
+            Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+            c.addFlavorListener(new FlavorListener() {
+                @Override
+                public void flavorsChanged(FlavorEvent e) {
+                    System.out.println(e);
+                }
+            });
+        }).start();
+        Thread.sleep(1000 * 60 * 24);
     }
 }
