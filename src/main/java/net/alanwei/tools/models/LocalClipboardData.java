@@ -30,6 +30,13 @@ public class LocalClipboardData {
         return "";
     }
 
+    public byte[] getData() {
+        if (this.data == null) {
+            return new byte[0];
+        }
+        return this.data;
+    }
+
     public boolean areEqual(LocalClipboardData clipboardData) {
         if (clipboardData == null) {
             return false;
@@ -60,5 +67,10 @@ public class LocalClipboardData {
 
     public void setTimeStamp(long timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s:%d] %s", this.type.toString(), this.getData() == null ? -1 : this.getData().length, this.getStringData());
     }
 }

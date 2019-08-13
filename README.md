@@ -4,9 +4,9 @@
 
 ## 编译 & 执行
 
-```base
-# mvn clean compile assembly:single
-# java -jar target/clipboard-sync-1.0-SNAPSHOT-jar-with-dependencies.jar
+```bash
+mvn clean compile assembly:single
+java -jar target/clipboard-sync-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
 ## 技术架构

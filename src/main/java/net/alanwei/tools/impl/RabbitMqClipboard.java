@@ -9,6 +9,7 @@ import net.alanwei.tools.Util;
 import net.alanwei.tools.inter.IClipboardWatcher;
 import net.alanwei.tools.inter.ILocalClipboard;
 import net.alanwei.tools.inter.INetworkClipboard;
+import net.alanwei.tools.models.ClipboardType;
 import net.alanwei.tools.models.LocalClipboardData;
 import net.alanwei.tools.models.NetworkClipboardData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +46,13 @@ public class RabbitMqClipboard implements INetworkClipboard {
         //TODO 支持正则表达式过滤, 当匹配时, 不传送某些剪贴板内容到网络上.
         try {
 //            this.latestNetworkClipboardData = clipboard;
+            Util.log(String.format("publish: %s", clipboard));
             clipboard.setTimeStamp(System.currentTimeMillis() / 1000);
             clipboard.setSourceId(Configurations.LOCAL_HOST_SOURCE_ID);
 
             this.pubChannel.exchangeDeclare("/clipboard", "topic");
             String routingKey = "sys.default";
             String json = Util.toJson(clipboard);
-            Util.log("publish length: " + json.length());
             this.pubChannel.basicPublish("/clipboard", routingKey, null, json.getBytes("UTF-8"));
         } catch (Throwable ex) {
             Util.log("publish error: " + ex.toString());
@@ -70,14 +71,24 @@ public class RabbitMqClipboard implements INetworkClipboard {
         hasWatched = true;
 
         this.clipboardWatcher.watch(localClipboard -> {
-            String localHashCode = Util.calculateHash(localClipboard.getData()),
-                    latestNetworkHashCode = Util.calculateHash(this.latestNetworkClipboardData.toLocalClipboard().getData());
-            if (Objects.equals(localHashCode, latestNetworkHashCode)) {
-                Util.log("watch equal: " + localHashCode);
-                return 1;
+            if (localClipboard.getData() != null && this.latestNetworkClipboardData != null) {
+
+                LocalClipboardData latestClipboard = this.latestNetworkClipboardData.toLocalClipboard();
+                String localHashCode = Util.calculateHash(localClipboard.getData()),
+                        latestNetworkHashCode = Util.calculateHash(latestClipboard.getData());
+
+                if (!Objects.equals(localHashCode, latestNetworkHashCode)) {
+                    if (localClipboard.getType().equals(ClipboardType.String) || latestClipboard.getType().equals(ClipboardType.Invalid)) {
+                        Util.log("watch not equal, local: " + localClipboard + ", network:" + this.latestNetworkClipboardData);
+                        this.publish(localClipboard.toNetworkClipboard());
+                    }
+                    if (localClipboard.getType().equals(ClipboardType.Image) && localClipboard.getData().length != latestClipboard.getData().length) {
+                        Util.log("watch not equal, local: " + localClipboard + ", network:" + this.latestNetworkClipboardData);
+                        this.publish(localClipboard.toNetworkClipboard());
+                    }
+                }
             }
-            Util.log("watch not equal: " + localHashCode + ", " + latestNetworkHashCode);
-            this.publish(localClipboard.toNetworkClipboard());
+            Util.log("watch equal, local: " + localClipboard + ", network:" + this.latestNetworkClipboardData);
             return 1;
         });
     }
@@ -91,14 +102,15 @@ public class RabbitMqClipboard implements INetworkClipboard {
 
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String json = new String(delivery.getBody(), "UTF-8");
-                Util.log("receive length: " + json.length());
                 NetworkClipboardData networkClipboardData = Util.parseJson(json, NetworkClipboardData.class);
+                Util.log("receive: " + networkClipboardData);
 
                 if (Objects.equals(networkClipboardData.getSourceId(), Configurations.LOCAL_HOST_SOURCE_ID)) {
                     Util.log("from self, drop.");
                     return;
                 }
                 this.latestNetworkClipboardData = networkClipboardData;
+                Util.log("set latest: " + networkClipboardData);
 
                 LocalClipboardData localClipboardData = networkClipboardData.toLocalClipboard();
                 localClipboard.set(localClipboardData);

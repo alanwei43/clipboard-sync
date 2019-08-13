@@ -30,4 +30,9 @@ public class NetworkClipboardData {
         clipboardData.setTimeStamp(this.timeStamp);
         return clipboardData;
     }
+
+    @Override
+    public String toString() {
+        return this.toLocalClipboard().toString();
+    }
 }

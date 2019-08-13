@@ -42,10 +42,7 @@ public class LocalSystemClipboard implements ILocalClipboard {
 
     @Override
     public boolean set(LocalClipboardData result) {
-        Util.log("update clipboard type: " + result.getType().toString());
-        if (result.getData() != null) {
-            Util.log("update clipboard length: " + result.getData().length);
-        }
+        Util.log(String.format("update clipboard: [%s:%d] %s", result.getType().toString(), result.getData().length, result.getStringData()));
         if (result.getType().equals(ClipboardType.String)) {
             StringSelection data = new StringSelection(new String(result.getData(), StandardCharsets.UTF_8));
             this.clipboard.setContents(data, data);

@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class App {
     public static void main(String[] args) {
-        System.out.println("version: 0.0.1");
+        System.out.println("version: 0.0.5");
         ApplicationContext cxt = Configurations.getContext();
         IClipboardWatcher watcher = cxt.getBean(IClipboardWatcher.class);
         watcher.watch(r -> {
